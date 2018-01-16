@@ -47,7 +47,6 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BBDD\BBDD.cs" />
     <Compile Include="Entity\RateEntity.cs" />
     <Compile Include="Logic\Logic.cs" />
     <Compile Include="Service\IService.cs" />

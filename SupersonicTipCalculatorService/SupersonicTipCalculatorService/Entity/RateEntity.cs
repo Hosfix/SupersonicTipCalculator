@@ -10,14 +10,11 @@ namespace SupersonicTipCalculatorService.Entity
     [DelimitedRecord("|")]
     public class RateEntity
     {
-        public int OrderID;
+        public string From { get; set; }
 
-        public string CustomerID;
+        public string To { get; set; }
 
-        [FieldConverter(ConverterKind.Date, "ddMMyyyy")]
-        public DateTime OrderDate;
-
-        [FieldConverter(ConverterKind.Decimal, ".")] // The decimal separator is .
-        public decimal Freight;
+        [FieldConverter(ConverterKind.Decimal, ".")]
+        public decimal Rate { get; set; }
     }
 }

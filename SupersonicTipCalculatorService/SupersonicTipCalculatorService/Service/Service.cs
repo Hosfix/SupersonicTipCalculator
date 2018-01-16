@@ -14,13 +14,13 @@ namespace SupersonicTipCalculatorService.Service
         public string GetData(int value)
         {
             var engine = new FileHelperEngine<RateEntity>();
-            var records = engine.ReadFile(@"Input.txt");
+            var records = engine.ReadFile(@"Input.txt").ToList();
 
             foreach (var record in records)
             {
-                Console.WriteLine(record.CustomerID);
-                Console.WriteLine(record.OrderDate.ToString("dd/MM/yyyy"));
-                Console.WriteLine(record.Freight);
+                Console.WriteLine(record.From);
+                Console.WriteLine(record.To);
+                Console.WriteLine(record.Rate);
             }
 
             return $"You entered: {value}";
