@@ -34,6 +34,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FileHelpers, Version=3.2.7.0, Culture=neutral, PublicKeyToken=3e0c08d59cc3d657, processorArchitecture=MSIL">
+      <HintPath>..\packages\FileHelpers.3.2.7\lib\net45\FileHelpers.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -45,7 +48,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BBDD\BBDD.cs" />
-    <Compile Include="Entity\1Entity.cs" />
+    <Compile Include="Entity\RateEntity.cs" />
     <Compile Include="Logic\Logic.cs" />
     <Compile Include="Service\IService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -53,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
