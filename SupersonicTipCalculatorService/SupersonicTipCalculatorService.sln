@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2010
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SupersonicTipCalculatorService", "SupersonicTipCalculatorService\SupersonicTipCalculatorService.csproj", "{43A3E43E-3194-40EE-9534-A05D7DEBD8E4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{43A3E43E-3194-40EE-9534-A05D7DEBD8E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43A3E43E-3194-40EE-9534-A05D7DEBD8E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43A3E43E-3194-40EE-9534-A05D7DEBD8E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43A3E43E-3194-40EE-9534-A05D7DEBD8E4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C33EFFB4-A794-4834-B11D-446CB6FFF13E}
+	EndGlobalSection
+EndGlobal
