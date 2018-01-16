@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SupersonicTipCalculatorService.BBDD
 {
-    class BBDD
+    public class BBDD
     {
     }
 }

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SupersonicTipCalculatorService.Entity
 {
-    class _1Entity
+    public class _1Entity
     {
     }
 }

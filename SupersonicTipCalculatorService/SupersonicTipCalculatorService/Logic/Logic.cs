@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace SupersonicTipCalculatorService.Logic
 {
-    class Logic
+    public class Logic
     {
+        //
     }
 }
