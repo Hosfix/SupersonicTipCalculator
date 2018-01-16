@@ -22,6 +22,7 @@ namespace SupersonicTipCalculatorService.Service
                 Console.WriteLine(record.OrderDate.ToString("dd/MM/yyyy"));
                 Console.WriteLine(record.Freight);
             }
+
             return $"You entered: {value}";
         }
     }
