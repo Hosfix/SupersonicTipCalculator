@@ -1,14 +1,7 @@
-﻿using FileHelpers;
-using Newtonsoft.Json;
+﻿using SupersonicTipCalculatorService.DAL;
 using SupersonicTipCalculatorService.Entity;
-using SupersonicTipCalculatorService.DAL;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Configuration;
 
 namespace SupersonicTipCalculatorService.Logic
 {
@@ -27,7 +20,7 @@ namespace SupersonicTipCalculatorService.Logic
         public static decimal CalculateTip(string sku, string currency)
         {
             List<RateEntity> ratesList = GetRates();
-            List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku && o.Currency == currency);
+            List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku);
             return GetTip(ratesList, ordersList, currency);
         }
 
@@ -45,65 +38,45 @@ namespace SupersonicTipCalculatorService.Logic
 
         private static decimal GetTip(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
-            decimal tip = 0;
+            var amount = order.Amount;
+            var camino = new List<RateEntity>();
+            if (order.Currency != currency)
+                camino = GetBetterWay(ratesList, order, currency);
 
-            if (order.Currency == currency)
-                tip = order.Amount * 0.5M;
-            else
+            foreach (var rate in camino)
             {
-                foreach (var rate in ratesList.FindAll(r => r.From == order.Currency))
-                {
-                    if (rate.To == currency)
-                    {
-                        tip = (order.Amount * rate.Rate) * 0.5M;
-                    }
-                }
+                amount = amount * rate.Rate;
             }
 
-            return tip;
+            return amount * 0.05M;
         }
 
-        private static void PruebaAlgoritmo(List<RateEntity> ratesList, OrderEntity order, string currency)
+        private static List<RateEntity> GetBetterWay(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
-            decimal FIN = 0;
-            //CALCULAR EL MEJOR CAMINO
-            string orderCurrency = order.Currency;
+            return Rates(order.Currency, currency, ratesList).OrderBy(r => r.Count).First();
+        }
 
-            if (order.Currency == currency)
-                FIN = 0;
-            else
+        public static List<List<RateEntity>> Rates(string baseCode, string targetCode, List<RateEntity> toSee)
+        {
+            var results = new List<List<RateEntity>>();
+
+            List<RateEntity> possible = toSee.FindAll(r => r.From == baseCode);
+            List<RateEntity> hits = possible.FindAll(p => p.To == targetCode);
+            if (hits.Count > 0)
             {
-                var listaRatesCurrencyFinal = ratesList.FindAll(r => r.To == currency);
-                if (listaRatesCurrencyFinal.FindAll(r => r.From == order.Currency).Count == 1)
-                {
-                    FIN = 0;
-                }
-                else
-                {
-                    var siguiente = ratesList.FindAll(r => listaRatesCurrencyFinal.Contains(r));
-                    if (siguiente.FindAll(r => r.From == order.Currency).Count == 1)
-                    {
-                        FIN = 0;
-                    }
-                    else
-                    {
-                        var siguiente2 = ratesList.FindAll(r => listaRatesCurrencyFinal.Contains(r));
-                        if (siguiente2.FindAll(r => r.From == order.Currency).Count == 1)
-                        {
-                            FIN = 0;
-                        }
-                        else
-                        {
-                            //Y ASI AHI TENEMOS EL METODO
-                        }
-                    }
-                }
+                possible.RemoveAll(hits.Contains);
+                results.AddRange(hits.Select(hit => new List<RateEntity> { hit }));
             }
 
-            //CALCULAR EL MEJOR CAMINO
-
-                //METODO RECURSIVO
-                //METODO RECURSIVO
+            List<RateEntity> newToSee = toSee.FindAll(item => !possible.Contains(item));
+            foreach (RateEntity posRate in possible)
+            {
+                List<List<RateEntity>> otherConversions = Rates(posRate.To, targetCode, newToSee);
+                RateEntity rate = posRate;
+                otherConversions.ForEach(result => result.Insert(0, rate));
+                results.AddRange(otherConversions);
+            }
+            return results;
         }
     }
 }

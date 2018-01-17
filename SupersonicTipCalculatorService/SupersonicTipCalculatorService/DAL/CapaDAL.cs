@@ -17,7 +17,7 @@ namespace SupersonicTipCalculatorService.DAL
         private static FileHelperEngine<OrderEntity> _engineOrders { get; set; }
 
         private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
-        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Transactions"];
+        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
         private static string _ratesFile = ConfigurationManager.AppSettings["RatesFile"];
         private static string _ordersFile = ConfigurationManager.AppSettings["OrdersFile"];
 
@@ -35,7 +35,7 @@ namespace SupersonicTipCalculatorService.DAL
         public static List<OrderEntity> GetOrders()
         {
             var ordersList = Deserialize<OrderEntity>(_urlJsonOrders);
-            var _engineOrders = new FileHelperEngine<OrderEntity>();
+            _engineOrders = new FileHelperEngine<OrderEntity>();
 
             if (ordersList != null && ordersList.Count > 0)
                 InsertOrders(ordersList);
