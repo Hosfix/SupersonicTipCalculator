@@ -30,20 +30,27 @@ namespace SupersonicTipCalculatorService.Service
             var records = engine.ReadFile(OrdersFile).ToList();
         }
 
-        public void SerializeRates()
+        public void DeserializeRates()
         {
-            string json = new WebClient().DownloadString(UrlJsonRates);
-            List<RateEntity> deserializedRates = JsonConvert.DeserializeObject<List<RateEntity>>(json).ToList();
-            InsertRates(deserializedRates);
+            InsertRates(Deserialize<RateEntity>(UrlJsonRates));
         }
 
-        public void SerializeOrders()
+        public void DeserializeOrders()
         {
-            string json = new WebClient().DownloadString(UrlJsonOrders);
-            List<OrderEntity> deserializedOrders = JsonConvert.DeserializeObject<List<OrderEntity>>(json).ToList();
-            InsertOrders(deserializedOrders);
+            InsertOrders(Deserialize<OrderEntity>(UrlJsonOrders));
         }
 
+        private List<T> Deserialize<T>(string Url)
+        {
+            string json = new WebClient().DownloadString(Url);
+            return JsonConvert.DeserializeObject<List<T>>(json).ToList();
+        }
+
+        private void Serialize<T>(List<T> list, string Url)
+        {
+            string json = JsonConvert.SerializeObject(list, Formatting.Indented);
+            new WebClient().UploadString(Url, json);
+        }
         private void InsertRates(List<RateEntity> listRates)
         {
             var engine = new FileHelperEngine<RateEntity>();

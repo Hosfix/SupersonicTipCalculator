@@ -17,9 +17,9 @@ namespace SupersonicTipCalculatorService.Service
         void GetPedido();
 
         [OperationContract]
-        void SerializeRates();
+        void DeserializeRates();
 
         [OperationContract]
-        void SerializeOrders();
+        void DeserializeOrders();
     }
 }
