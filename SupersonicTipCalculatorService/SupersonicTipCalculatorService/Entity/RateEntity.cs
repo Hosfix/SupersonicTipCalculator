@@ -8,7 +8,7 @@ using FileHelpers;
 namespace SupersonicTipCalculatorService.Entity
 {
     [DelimitedRecord("|")]
-    public class RateEntity
+    public class RateEntity : IDisposable
     {
         public string From { get; set; }
 
@@ -16,5 +16,10 @@ namespace SupersonicTipCalculatorService.Entity
 
         [FieldConverter(ConverterKind.Decimal, ".")]
         public decimal Rate { get; set; }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

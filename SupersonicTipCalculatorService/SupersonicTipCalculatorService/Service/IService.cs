@@ -11,6 +11,15 @@ namespace SupersonicTipCalculatorService.Service
     public interface IService
     {
         [OperationContract]
-        string GetData(int value);
+        void GetRates();
+
+        [OperationContract]
+        void GetPedido();
+
+        [OperationContract]
+        void SerializeRates();
+
+        [OperationContract]
+        void SerializeOrders();
     }
 }
