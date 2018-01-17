@@ -14,44 +14,96 @@ namespace SupersonicTipCalculatorService.Logic
 {
     public static class CapaLogica
     {
-        private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
-        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Transactions"];
-
-        public static void GetRates()
+        public static List<RateEntity> GetRates()
         {
-            CapaDAL.GetRates();
+            return CapaDAL.GetRates();
         }
 
-        public static void GetPedido()
+        public static List<OrderEntity> GetOrders()
         {
-            CapaDAL.GetPedido();
+            return CapaDAL.GetOrders();
         }
 
-        public static void DeserializeRates()
+        public static decimal CalculateTip(string sku, string currency)
         {
-            CapaDAL.InsertRates(Deserialize<RateEntity>(_urlJsonRates));
-        }
-        public static void DeserializeOrders()
-        {
-            CapaDAL.InsertOrders(Deserialize<OrderEntity>(_urlJsonOrders));
+            List<RateEntity> ratesList = GetRates();
+            List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku && o.Currency == currency);
+            return GetTip(ratesList, ordersList, currency);
         }
 
-        private static List<T> Deserialize<T>(string Url)
+        private static decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
-            using (var webClient = new WebClient())
+            decimal totalTip = 0M;
+
+            foreach (var order in ordersList)
             {
-                string json = webClient.DownloadString(Url);
-                return JsonConvert.DeserializeObject<List<T>>(json).ToList();
+                totalTip += GetTip(ratesList, order, currency);
             }
+
+            return totalTip;
         }
 
-        private static void Serialize<T>(List<T> list, string Url)
+        private static decimal GetTip(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
-            using (var webClient = new WebClient())
+            decimal tip = 0;
+
+            if (order.Currency == currency)
+                tip = order.Amount * 0.5M;
+            else
             {
-                string json = JsonConvert.SerializeObject(list, Formatting.Indented);
-                webClient.UploadString(Url, json);
+                foreach (var rate in ratesList.FindAll(r => r.From == order.Currency))
+                {
+                    if (rate.To == currency)
+                    {
+                        tip = (order.Amount * rate.Rate) * 0.5M;
+                    }
+                }
             }
+
+            return tip;
+        }
+
+        private static void PruebaAlgoritmo(List<RateEntity> ratesList, OrderEntity order, string currency)
+        {
+            decimal FIN = 0;
+            //CALCULAR EL MEJOR CAMINO
+            string orderCurrency = order.Currency;
+
+            if (order.Currency == currency)
+                FIN = 0;
+            else
+            {
+                var listaRatesCurrencyFinal = ratesList.FindAll(r => r.To == currency);
+                if (listaRatesCurrencyFinal.FindAll(r => r.From == order.Currency).Count == 1)
+                {
+                    FIN = 0;
+                }
+                else
+                {
+                    var siguiente = ratesList.FindAll(r => listaRatesCurrencyFinal.Contains(r));
+                    if (siguiente.FindAll(r => r.From == order.Currency).Count == 1)
+                    {
+                        FIN = 0;
+                    }
+                    else
+                    {
+                        var siguiente2 = ratesList.FindAll(r => listaRatesCurrencyFinal.Contains(r));
+                        if (siguiente2.FindAll(r => r.From == order.Currency).Count == 1)
+                        {
+                            FIN = 0;
+                        }
+                        else
+                        {
+                            //Y ASI AHI TENEMOS EL METODO
+                        }
+                    }
+                }
+            }
+
+            //CALCULAR EL MEJOR CAMINO
+
+                //METODO RECURSIVO
+                //METODO RECURSIVO
         }
     }
 }

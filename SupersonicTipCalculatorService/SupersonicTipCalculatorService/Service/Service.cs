@@ -1,27 +1,24 @@
-﻿using SupersonicTipCalculatorService.Logic;
+﻿using SupersonicTipCalculatorService.Entity;
+using SupersonicTipCalculatorService.Logic;
+using System.Collections.Generic;
 
 namespace SupersonicTipCalculatorService.Service
 {
     public class Service : IService
     {
-        public void GetRates()
+        public List<RateEntity> GetRates()
         {
-            CapaLogica.GetRates();
+            return CapaLogica.GetRates();
         }
 
-        public void GetPedido()
+        public List<OrderEntity> Getorders()
         {
-            CapaLogica.GetPedido();
+            return CapaLogica.GetOrders();
         }
 
-        public void DeserializeRates()
+        public decimal CalculateTip(string sku, string currency)
         {
-            CapaLogica.DeserializeRates();
-        }
-
-        public void DeserializeOrders()
-        {
-            CapaLogica.DeserializeOrders();
+            return CapaLogica.CalculateTip(sku, currency);
         }
     }
 }
