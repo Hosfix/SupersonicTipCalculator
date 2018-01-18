@@ -1,4 +1,5 @@
 ﻿using SupersonicTipCalculatorService.Entity;
+using System;
 using System.Collections.Generic;
 using System.ServiceModel;
 
@@ -8,12 +9,12 @@ namespace SupersonicTipCalculatorService.Service
     public interface IService
     {
         [OperationContract]
-        List<RateEntity> GetRates();
+        string GetJsonRates();
 
         [OperationContract]
-        List<OrderEntity> Getorders();
+        string GetJsonOrders();
 
         [OperationContract]
-        decimal CalculateTip(string sku, string currency);
+        Tuple<string, decimal> CalculateTip(string sku, string currency);
     }
 }

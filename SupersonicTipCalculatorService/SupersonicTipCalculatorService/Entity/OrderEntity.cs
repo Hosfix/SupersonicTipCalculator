@@ -16,5 +16,8 @@ namespace SupersonicTipCalculatorService.Entity
         public decimal Amount { get; set; }
 
         public string Currency { get; set; }
+
+        [FieldConverter(ConverterKind.Decimal, ".")]
+        public decimal Tip { get { return Amount * 0.05M; } }
     }
 }

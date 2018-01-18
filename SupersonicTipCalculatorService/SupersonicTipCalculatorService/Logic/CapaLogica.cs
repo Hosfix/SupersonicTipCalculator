@@ -1,27 +1,53 @@
-﻿using SupersonicTipCalculatorService.DAL;
+﻿using Newtonsoft.Json;
+using SupersonicTipCalculatorService.DAL;
 using SupersonicTipCalculatorService.Entity;
+using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
+using System.Net;
 
 namespace SupersonicTipCalculatorService.Logic
 {
     public static class CapaLogica
     {
-        public static List<RateEntity> GetRates()
+        private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
+        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
+
+        public static string GetJsonRates()
         {
-            return CapaDAL.GetRates();
+            var json = DownloadJson<RateEntity>(_urlJsonRates);
+            CapaDAL.InsertRates(json);
+            return json;
         }
 
-        public static List<OrderEntity> GetOrders()
+        public static string GetJsonOrders()
         {
-            return CapaDAL.GetOrders();
+            string json = DownloadJson<OrderEntity>(_urlJsonOrders);
+            CapaDAL.InsertOrders(json);
+            return json;
         }
 
-        public static decimal CalculateTip(string sku, string currency)
+        public static Tuple<string, decimal> CalculateTip(string sku, string currency)
         {
             List<RateEntity> ratesList = GetRates();
             List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku);
-            return GetTip(ratesList, ordersList, currency);
+            var json = CapaDAL.Serialize(ordersList);
+            var totalTip = GetTip(ratesList, ordersList, currency);
+
+            return Tuple.Create(json, totalTip);
+        }
+
+        private static List<RateEntity> GetRates()
+        {
+            string json = GetJsonRates();
+            return CapaDAL.GetRates();
+        }
+
+        private static List<OrderEntity> GetOrders()
+        {
+            string json = DownloadJson<OrderEntity>(_urlJsonOrders);
+            return CapaDAL.GetOrders();
         }
 
         private static decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
@@ -33,7 +59,7 @@ namespace SupersonicTipCalculatorService.Logic
                 totalAmount += GetOrderAmount(ratesList, order, currency);
             }
 
-            return totalAmount * 0.5M;
+            return totalAmount * 0.05M;
         }
 
         private static decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
@@ -72,6 +98,14 @@ namespace SupersonicTipCalculatorService.Logic
                 results.AddRange(conversions);
             }
             return results;
+        }
+
+        private static string DownloadJson<T>(string Url)
+        {
+            using (var webClient = new WebClient())
+            {
+                return webClient.DownloadString(Url);
+            }
         }
     }
 }

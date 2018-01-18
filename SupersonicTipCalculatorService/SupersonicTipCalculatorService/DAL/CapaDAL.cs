@@ -1,13 +1,9 @@
 ﻿using FileHelpers;
 using Newtonsoft.Json;
 using SupersonicTipCalculatorService.Entity;
-using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SupersonicTipCalculatorService.DAL
 {
@@ -16,60 +12,41 @@ namespace SupersonicTipCalculatorService.DAL
         private static FileHelperEngine<RateEntity> _engineRates { get; set; }
         private static FileHelperEngine<OrderEntity> _engineOrders { get; set; }
 
-        private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
-        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
         private static string _ratesFile = ConfigurationManager.AppSettings["RatesFile"];
         private static string _ordersFile = ConfigurationManager.AppSettings["OrdersFile"];
 
         public static List<RateEntity> GetRates()
         {
-            var ratesList = Deserialize<RateEntity>(_urlJsonRates);
             _engineRates = new FileHelperEngine<RateEntity>();
-
-            if (ratesList != null && ratesList.Count > 0)
-                InsertRates(ratesList);
-
             return _engineRates.ReadFile(_ratesFile).ToList();
         }
 
         public static List<OrderEntity> GetOrders()
         {
-            var ordersList = Deserialize<OrderEntity>(_urlJsonOrders);
             _engineOrders = new FileHelperEngine<OrderEntity>();
-
-            if (ordersList != null && ordersList.Count > 0)
-                InsertOrders(ordersList);
-
             return _engineOrders.ReadFile(_ordersFile).ToList();
         }
 
-        public static void InsertRates(List<RateEntity> listRates)
+        public static void InsertRates(string json)
         {
-            _engineRates.WriteFile(_ratesFile, listRates);
+            var ratesList = Deserialize<RateEntity>(json).ToList();
+            _engineRates.WriteFile(_ratesFile, ratesList);
         }
 
-        public static void InsertOrders(List<OrderEntity> orderList)
+        public static void InsertOrders(string json)
         {
-            _engineOrders.WriteFile(_ordersFile, orderList);
+            var ordersList = Deserialize<OrderEntity>(json).ToList();
+            _engineOrders.WriteFile(_ordersFile, ordersList);
         }
 
-
-        private static List<T> Deserialize<T>(string Url)
+        public static List<T> Deserialize<T>(string json)
         {
-            using (var webClient = new WebClient())
-            {
-                string json = webClient.DownloadString(Url);
-                return JsonConvert.DeserializeObject<List<T>>(json).ToList();
-            }
+            return JsonConvert.DeserializeObject<List<T>>(json).ToList();
         }
 
-        private static void Serialize<T>(List<T> list, string Url)
+        public static string Serialize<T>(List<T> list)
         {
-            using (var webClient = new WebClient())
-            {
-                string json = JsonConvert.SerializeObject(list, Formatting.Indented);
-                webClient.UploadString(Url, json);
-            }
+            return JsonConvert.SerializeObject(list, Formatting.Indented);
         }
     }
 }
