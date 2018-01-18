@@ -26,17 +26,17 @@ namespace SupersonicTipCalculatorService.Logic
 
         private static decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
-            decimal totalTip = 0M;
+            decimal totalAmount = 0M;
 
             foreach (var order in ordersList)
             {
-                totalTip += GetTip(ratesList, order, currency);
+                totalAmount += GetOrderAmount(ratesList, order, currency);
             }
 
-            return totalTip;
+            return totalAmount * 0.5M;
         }
 
-        private static decimal GetTip(List<RateEntity> ratesList, OrderEntity order, string currency)
+        private static decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
             var amount = order.Amount;
             var betterWay = new List<RateEntity>();
@@ -48,7 +48,7 @@ namespace SupersonicTipCalculatorService.Logic
                 amount = amount * rate.Rate;
             }
 
-            return amount * 0.05M;
+            return amount;
         }
 
         private static List<List<RateEntity>> FindPossibleChangeRecursive(string from, string to, List<RateEntity> ratesList)
