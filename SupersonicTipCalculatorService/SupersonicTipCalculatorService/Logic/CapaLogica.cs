@@ -1,11 +1,9 @@
-﻿using Newtonsoft.Json;
-using SupersonicTipCalculatorService.DAL;
+﻿using SupersonicTipCalculatorService.DAL;
 using SupersonicTipCalculatorService.Entity;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Net;
 
 namespace SupersonicTipCalculatorService.Logic
 {
@@ -14,16 +12,16 @@ namespace SupersonicTipCalculatorService.Logic
         private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
         private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
 
-        public static string GetJsonRates()
+        public static String GetJsonRates()
         {
-            var json = DownloadJson<RateEntity>(_urlJsonRates);
+            var json = CapaDAL.DownloadJson<RateEntity>(_urlJsonRates);
             CapaDAL.InsertRates(json);
             return json;
         }
 
-        public static string GetJsonOrders()
+        public static String GetJsonOrders()
         {
-            string json = DownloadJson<OrderEntity>(_urlJsonOrders);
+            string json = CapaDAL.DownloadJson<OrderEntity>(_urlJsonOrders);
             CapaDAL.InsertOrders(json);
             return json;
         }
@@ -40,17 +38,31 @@ namespace SupersonicTipCalculatorService.Logic
 
         private static List<RateEntity> GetRates()
         {
+            List<RateEntity> resultado = new List<RateEntity>();
             string json = GetJsonRates();
-            return CapaDAL.GetRates();
+
+            if (!string.IsNullOrEmpty(json))
+                resultado = CapaDAL.Deserialize<RateEntity>(json);
+            else
+                resultado = CapaDAL.GetRates();
+
+            return resultado;
         }
 
         private static List<OrderEntity> GetOrders()
         {
-            string json = DownloadJson<OrderEntity>(_urlJsonOrders);
-            return CapaDAL.GetOrders();
+            List<OrderEntity> resultado = new List<OrderEntity>();
+            string json = GetJsonOrders();
+
+            if (!string.IsNullOrEmpty(json))
+                resultado = CapaDAL.Deserialize<OrderEntity>(json);
+            else
+                resultado = CapaDAL.GetOrders();
+
+            return resultado;
         }
 
-        private static decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
+        private static Decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
             decimal totalAmount = 0M;
 
@@ -62,7 +74,7 @@ namespace SupersonicTipCalculatorService.Logic
             return totalAmount * 0.05M;
         }
 
-        private static decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
+        private static Decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
             var amount = order.Amount;
             var betterWay = new List<RateEntity>();
@@ -98,14 +110,6 @@ namespace SupersonicTipCalculatorService.Logic
                 results.AddRange(conversions);
             }
             return results;
-        }
-
-        private static string DownloadJson<T>(string Url)
-        {
-            using (var webClient = new WebClient())
-            {
-                return webClient.DownloadString(Url);
-            }
         }
     }
 }

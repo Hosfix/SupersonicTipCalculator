@@ -1,6 +1,4 @@
-﻿using SupersonicTipCalculatorService.Entity;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.ServiceModel;
 
 namespace SupersonicTipCalculatorService.Service
