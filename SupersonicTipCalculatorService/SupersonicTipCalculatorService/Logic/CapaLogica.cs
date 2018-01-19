@@ -1,4 +1,5 @@
-﻿using SupersonicTipCalculatorService.DAL;
+﻿using NLog;
+using SupersonicTipCalculatorService.DAL;
 using SupersonicTipCalculatorService.Entity;
 using System;
 using System.Collections.Generic;
@@ -7,62 +8,64 @@ using System.Linq;
 
 namespace SupersonicTipCalculatorService.Logic
 {
-    public static class CapaLogica
+    public class CapaLogica : ICapaLogica
     {
         private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
         private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private ICapaDAL capaDal = new CapaDAL();
 
-        public static String GetJsonRates()
+        public String GetJsonRates()
         {
-            var json = CapaDAL.DownloadJson<RateEntity>(_urlJsonRates);
-            CapaDAL.InsertRates(json);
+            var json = capaDal.DownloadJson(_urlJsonRates);
+            capaDal.InsertRates(json);
             return json;
         }
 
-        public static String GetJsonOrders()
+        public String GetJsonOrders()
         {
-            string json = CapaDAL.DownloadJson<OrderEntity>(_urlJsonOrders);
-            CapaDAL.InsertOrders(json);
+            string json = capaDal.DownloadJson(_urlJsonOrders);
+            capaDal.InsertOrders(json);
             return json;
         }
 
-        public static Tuple<string, decimal> CalculateTip(string sku, string currency)
+        public Tuple<string, decimal> CalculateTip(string sku, string currency)
         {
             List<RateEntity> ratesList = GetRates();
             List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku);
-            var json = CapaDAL.Serialize(ordersList);
+            var json = capaDal.Serialize(ordersList);
             var totalTip = GetTip(ratesList, ordersList, currency);
 
             return Tuple.Create(json, totalTip);
         }
 
-        private static List<RateEntity> GetRates()
+        private List<RateEntity> GetRates()
         {
-            List<RateEntity> resultado = new List<RateEntity>();
+            List<RateEntity> result = new List<RateEntity>();
             string json = GetJsonRates();
 
             if (!string.IsNullOrEmpty(json))
-                resultado = CapaDAL.Deserialize<RateEntity>(json);
+                result = capaDal.Deserialize<RateEntity>(json);
             else
-                resultado = CapaDAL.GetRates();
+                result = capaDal.GetRates();
 
-            return resultado;
+            return result;
         }
 
-        private static List<OrderEntity> GetOrders()
+        private List<OrderEntity> GetOrders()
         {
-            List<OrderEntity> resultado = new List<OrderEntity>();
+            List<OrderEntity> result = new List<OrderEntity>();
             string json = GetJsonOrders();
 
             if (!string.IsNullOrEmpty(json))
-                resultado = CapaDAL.Deserialize<OrderEntity>(json);
+                result = capaDal.Deserialize<OrderEntity>(json);
             else
-                resultado = CapaDAL.GetOrders();
+                result = capaDal.GetOrders();
 
-            return resultado;
+            return result;
         }
 
-        private static Decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
+        private Decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
             decimal totalAmount = 0M;
 
@@ -74,7 +77,7 @@ namespace SupersonicTipCalculatorService.Logic
             return totalAmount * 0.05M;
         }
 
-        private static Decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
+        private Decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
             var amount = order.Amount;
             var betterWay = new List<RateEntity>();
@@ -89,26 +92,34 @@ namespace SupersonicTipCalculatorService.Logic
             return amount;
         }
 
-        private static List<List<RateEntity>> FindPossibleChangeRecursive(string from, string to, List<RateEntity> ratesList)
+        private List<List<RateEntity>> FindPossibleChangeRecursive(string from, string to, List<RateEntity> ratesList)
         {
             var results = new List<List<RateEntity>>();
 
-            List<RateEntity> listWithFrom = ratesList.FindAll(f => f.From == from);
-            List<RateEntity> listWithFromAndTo = listWithFrom.FindAll(ft => ft.To == to);
-            if (listWithFromAndTo.Count > 0)
+            try
             {
-                listWithFrom.RemoveAll(listWithFromAndTo.Contains);
-                results.AddRange(listWithFromAndTo.Select(lft => new List<RateEntity> { lft }));
+                List<RateEntity> listWithFrom = ratesList.FindAll(f => f.From == from);
+                List<RateEntity> listWithFromAndTo = listWithFrom.FindAll(ft => ft.To == to);
+                if (listWithFromAndTo.Count > 0)
+                {
+                    listWithFrom.RemoveAll(listWithFromAndTo.Contains);
+                    results.AddRange(listWithFromAndTo.Select(lft => new List<RateEntity> { lft }));
+                }
+
+                List<RateEntity> newListToSee = ratesList.FindAll(s => !listWithFrom.Contains(s));
+                foreach (RateEntity possibleRate in listWithFrom)
+                {
+                    List<List<RateEntity>> conversions = FindPossibleChangeRecursive(possibleRate.To, to, newListToSee);
+                    RateEntity rate = possibleRate;
+                    conversions.ForEach(result => result.Insert(0, rate));
+                    results.AddRange(conversions);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, String.Format("Error al calcular el cambio de divisa From: {0}, To: {1}", from, to));
             }
 
-            List<RateEntity> newListToSee = ratesList.FindAll(s => !listWithFrom.Contains(s));
-            foreach (RateEntity possibleRate in listWithFrom)
-            {
-                List<List<RateEntity>> conversions = FindPossibleChangeRecursive(possibleRate.To, to, newListToSee);
-                RateEntity rate = possibleRate;
-                conversions.ForEach(result => result.Insert(0, rate));
-                results.AddRange(conversions);
-            }
             return results;
         }
     }

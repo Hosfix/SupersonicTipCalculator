@@ -5,19 +5,21 @@ namespace SupersonicTipCalculatorService.Service
 {
     public class Service : IService
     {
+        private ICapaLogica capaLogica = new CapaLogica();
+
         public string GetJsonRates()
         {
-            return CapaLogica.GetJsonRates();
+            return capaLogica.GetJsonRates();
         }
 
         public string GetJsonOrders()
         {
-            return CapaLogica.GetJsonOrders();
+            return capaLogica.GetJsonOrders();
         }
 
         public Tuple<string, decimal> CalculateTip(string sku, string currency)
         {
-            return CapaLogica.CalculateTip(sku, currency);
+            return capaLogica.CalculateTip(sku, currency);
         }
     }
 }
