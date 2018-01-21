@@ -10,22 +10,22 @@ namespace SupersonicTipCalculatorService.Logic
 {
     public class CapaLogica : ICapaLogica
     {
-        private static string _urlJsonRates = ConfigurationManager.AppSettings["Rates"];
-        private static string _urlJsonOrders = ConfigurationManager.AppSettings["Orders"];
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
-        private ICapaDAL capaDal = new CapaDAL();
+        private static readonly string UrlJsonRates = ConfigurationManager.AppSettings["Rates"];
+        private static readonly string UrlJsonOrders = ConfigurationManager.AppSettings["Orders"];
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private readonly ICapaDal _capaDal = new CapaDal();
 
-        public String GetJsonRates()
+        public string GetJsonRates()
         {
-            var json = capaDal.DownloadJson(_urlJsonRates);
-            capaDal.InsertRates(json);
+            var json = _capaDal.DownloadJson(UrlJsonRates);
+            _capaDal.InsertRates(json);
             return json;
         }
 
-        public String GetJsonOrders()
+        public string GetJsonOrders()
         {
-            string json = capaDal.DownloadJson(_urlJsonOrders);
-            capaDal.InsertOrders(json);
+            string json = _capaDal.DownloadJson(UrlJsonOrders);
+            _capaDal.InsertOrders(json);
             return json;
         }
 
@@ -33,7 +33,7 @@ namespace SupersonicTipCalculatorService.Logic
         {
             List<RateEntity> ratesList = GetRates();
             List<OrderEntity> ordersList = GetOrders().FindAll(o => o.Sku == sku);
-            var json = capaDal.Serialize(ordersList);
+            var json = _capaDal.Serialize(ordersList);
             var totalTip = GetTip(ratesList, ordersList, currency);
 
             return Tuple.Create(json, totalTip);
@@ -41,31 +41,23 @@ namespace SupersonicTipCalculatorService.Logic
 
         private List<RateEntity> GetRates()
         {
-            List<RateEntity> result = new List<RateEntity>();
-            string json = GetJsonRates();
+            var json = GetJsonRates();
 
-            if (!string.IsNullOrEmpty(json))
-                result = capaDal.Deserialize<RateEntity>(json);
-            else
-                result = capaDal.GetRates();
+            var result = !string.IsNullOrEmpty(json) ? _capaDal.Deserialize<RateEntity>(json) : _capaDal.GetRates();
 
             return result;
         }
 
         private List<OrderEntity> GetOrders()
         {
-            List<OrderEntity> result = new List<OrderEntity>();
-            string json = GetJsonOrders();
+            var json = GetJsonOrders();
 
-            if (!string.IsNullOrEmpty(json))
-                result = capaDal.Deserialize<OrderEntity>(json);
-            else
-                result = capaDal.GetOrders();
+            var result = !string.IsNullOrEmpty(json) ? _capaDal.Deserialize<OrderEntity>(json) : _capaDal.GetOrders();
 
             return result;
         }
 
-        private Decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
+        private decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
             decimal totalAmount = 0M;
 
@@ -77,7 +69,7 @@ namespace SupersonicTipCalculatorService.Logic
             return totalAmount * 0.05M;
         }
 
-        private Decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
+        private decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
             var amount = order.Amount;
             var betterWay = new List<RateEntity>();
@@ -98,26 +90,26 @@ namespace SupersonicTipCalculatorService.Logic
 
             try
             {
-                List<RateEntity> listWithFrom = ratesList.FindAll(f => f.From == from);
-                List<RateEntity> listWithFromAndTo = listWithFrom.FindAll(ft => ft.To == to);
+                var listWithFrom = ratesList.FindAll(f => f.From == from);
+                var listWithFromAndTo = listWithFrom.FindAll(ft => ft.To == to);
                 if (listWithFromAndTo.Count > 0)
                 {
                     listWithFrom.RemoveAll(listWithFromAndTo.Contains);
                     results.AddRange(listWithFromAndTo.Select(lft => new List<RateEntity> { lft }));
                 }
 
-                List<RateEntity> newListToSee = ratesList.FindAll(s => !listWithFrom.Contains(s));
+                var newListToSee = ratesList.FindAll(s => !listWithFrom.Contains(s));
                 foreach (RateEntity possibleRate in listWithFrom)
                 {
-                    List<List<RateEntity>> conversions = FindPossibleChangeRecursive(possibleRate.To, to, newListToSee);
-                    RateEntity rate = possibleRate;
+                    var conversions = FindPossibleChangeRecursive(possibleRate.To, to, newListToSee);
+                    var rate = possibleRate;
                     conversions.ForEach(result => result.Insert(0, rate));
                     results.AddRange(conversions);
                 }
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, String.Format("Error al calcular el cambio de divisa From: {0}, To: {1}", from, to));
+                Logger.Error(ex, $"Error al calcular el cambio de divisa From: {from}, To: {to}");
             }
 
             return results;

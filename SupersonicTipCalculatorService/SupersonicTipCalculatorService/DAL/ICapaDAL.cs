@@ -5,7 +5,7 @@ using System.ServiceModel;
 namespace SupersonicTipCalculatorService.DAL
 {
     [ServiceContract]
-    public interface ICapaDAL
+    public interface ICapaDal
     {
         [OperationContract]
         List<RateEntity> GetRates();
@@ -26,6 +26,6 @@ namespace SupersonicTipCalculatorService.DAL
         string Serialize<T>(List<T> list);
 
         [OperationContract]
-        string DownloadJson(string Url);
+        string DownloadJson(string url);
     }
 }

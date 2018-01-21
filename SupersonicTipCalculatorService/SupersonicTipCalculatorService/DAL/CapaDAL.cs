@@ -10,27 +10,27 @@ using System.Net;
 
 namespace SupersonicTipCalculatorService.DAL
 {
-    public class CapaDAL : ICapaDAL
+    public class CapaDal : ICapaDal
     {
-        private static FileHelperEngine<RateEntity> _engineRates { get; set; }
-        private static FileHelperEngine<OrderEntity> _engineOrders { get; set; }
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private static FileHelperEngine<RateEntity> EngineRates { get; set; }
+        private static FileHelperEngine<OrderEntity> EngineOrders { get; set; }
+        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-        private static string _ratesFile = ConfigurationManager.AppSettings["RatesFile"];
-        private static string _ordersFile = ConfigurationManager.AppSettings["OrdersFile"];
+        private static readonly string RatesFile = ConfigurationManager.AppSettings["RatesFile"];
+        public static readonly string OrdersFile = ConfigurationManager.AppSettings["OrdersFile"];
         
         public List<RateEntity> GetRates()
         {
-            List<RateEntity> result = new List<RateEntity>();
+            var result = new List<RateEntity>();
 
             try
             {
-                _engineRates = new FileHelperEngine<RateEntity>();
-                result = _engineRates.ReadFile(_ratesFile).ToList();
+                EngineRates = new FileHelperEngine<RateEntity>();
+                result = EngineRates.ReadFile(RatesFile).ToList();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error al leer las conversiones almacenadas");
+                Logger.Error(ex, "Error al leer las conversiones almacenadas");
             }
 
             return result;
@@ -42,12 +42,12 @@ namespace SupersonicTipCalculatorService.DAL
 
             try
             {
-                _engineOrders = new FileHelperEngine<OrderEntity>();
-                result = _engineOrders.ReadFile(_ordersFile).ToList();
+                EngineOrders = new FileHelperEngine<OrderEntity>();
+                result = EngineOrders.ReadFile(OrdersFile).ToList();
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error al leer los pedidos almacenados");
+                Logger.Error(ex, "Error al leer los pedidos almacenados");
             }
 
             return result;
@@ -58,11 +58,11 @@ namespace SupersonicTipCalculatorService.DAL
             try
             {
                 var ratesList = Deserialize<RateEntity>(json).ToList();
-                _engineRates.WriteFile(_ratesFile, ratesList);
+                EngineRates.WriteFile(RatesFile, ratesList);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error al leer las conversiones almacenados");
+                Logger.Error(ex, "Error al leer las conversiones almacenados");
             }
         }
 
@@ -71,11 +71,11 @@ namespace SupersonicTipCalculatorService.DAL
             try
             {
                 var ordersList = Deserialize<OrderEntity>(json).ToList();
-                _engineOrders.WriteFile(_ordersFile, ordersList);
+                EngineOrders.WriteFile(OrdersFile, ordersList);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "Error al leer los pedidos almacenados");
+                Logger.Error(ex, "Error al leer los pedidos almacenados");
             }
         }
 
@@ -89,7 +89,7 @@ namespace SupersonicTipCalculatorService.DAL
             }
             catch (JsonException ex)
             {
-                _logger.Error(ex, "Error al deserializar la entidad: " + typeof(T).Name);
+                Logger.Error(ex, "Error al deserializar la entidad: " + typeof(T).Name);
             }
 
             return result;
@@ -97,7 +97,7 @@ namespace SupersonicTipCalculatorService.DAL
 
         public string Serialize<T>(List<T> list)
         {
-            string result = string.Empty;
+            var result = string.Empty;
 
             try
             {
@@ -105,26 +105,26 @@ namespace SupersonicTipCalculatorService.DAL
             }
             catch (JsonException ex)
             {
-                _logger.Error(ex, "Error al serializar la entidad: " + typeof(T).Name);
+                Logger.Error(ex, "Error al serializar la entidad: " + typeof(T).Name);
             }
 
             return result;
         }
 
-        public string DownloadJson(string Url)
+        public string DownloadJson(string url)
         {
-            string result = string.Empty;
+            var result = string.Empty;
 
             try
             {
                 using (var webClient = new WebClient())
                 {
-                    result = webClient.DownloadString(Url);
+                    result = webClient.DownloadString(url);
                 }
             }
             catch (WebException ex)
             {
-                _logger.Error(ex, "Error al descargar el json de la Url: " + Url);
+                Logger.Error(ex, "Error al descargar el json de la Url: " + url);
             }
 
             return result;
