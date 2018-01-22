@@ -60,25 +60,41 @@ namespace SupersonicTipCalculatorService.Logic
         private decimal GetTip(List<RateEntity> ratesList, List<OrderEntity> ordersList, string currency)
         {
             decimal totalAmount = 0M;
+            var totalTip = 0M;
 
-            foreach (var order in ordersList)
+            try
             {
-                totalAmount += GetOrderAmount(ratesList, order, currency);
+                foreach (var order in ordersList)
+                {
+                    totalAmount += GetOrderAmount(ratesList, order, currency);
+                }
+                totalTip = totalAmount * 0.05M;
             }
-
-            return totalAmount * 0.05M;
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Error al calcular la propina total del pedido");
+            }
+            return totalTip;
         }
 
         private decimal GetOrderAmount(List<RateEntity> ratesList, OrderEntity order, string currency)
         {
             var amount = order.Amount;
-            var betterWay = new List<RateEntity>();
-            if (order.Currency != currency)
-                betterWay = FindPossibleChangeRecursive(order.Currency, currency, ratesList).OrderBy(r => r.Count).First();
 
-            foreach (var rate in betterWay)
+            try
             {
-                amount = amount * rate.Rate;
+                var betterWay = new List<RateEntity>();
+                if (order.Currency != currency)
+                    betterWay = FindPossibleChangeRecursive(order.Currency, currency, ratesList).OrderBy(r => r.Count).First();
+
+                foreach (var rate in betterWay)
+                {
+                    amount = amount * rate.Rate;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, $"Error al calcular la cantidad total del pedido: {order.Sku}");
             }
 
             return amount;
